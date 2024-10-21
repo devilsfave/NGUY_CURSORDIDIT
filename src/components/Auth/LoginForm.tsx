@@ -3,6 +3,7 @@ import { signInWithEmailAndPassword, sendPasswordResetEmail, UserCredential } fr
 import { auth } from '../../Firebase/config';
 import ButtonStyling from '../ButtonStyling';
 import FacebookLogin from './FacebookLogin';
+import Link from 'next/link';
 
 interface LoginFormProps {
   setUserWithRole: (user: { name: string | null; email: string | null }, role: string) => void;
@@ -115,12 +116,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ setUserWithRole }) => {
       {isLoading && <p className="text-center text-[#EFEFED]">Loading...</p>}
 
       <div className="text-center mt-4">
-        <p className="text-[#EFEFED]">Or login with</p>
+        <p className="text-[#EFEFED]">OR</p>
         <FacebookLogin setUserWithRole={setUserWithRole} role={role} isRegistration={false} />
       </div>
 
       <p className="text-center text-[#EFEFED] mt-4">
-        Don't have an account? <a href="/register" className="text-[#3B82F6]">Sign up</a>
+        Don't have an account? <Link href="/register" className="text-[#3B82F6]">Sign up</Link>
       </p>
 
       <p 

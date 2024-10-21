@@ -3,6 +3,7 @@ import { firestore as db } from '../../Firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
 import PatientDashboard from './PatientDashboard';
 import DoctorDashboard from './DoctorDashboard';
+import { motion } from 'framer-motion';
 
 interface User {
   uid: string;
@@ -14,51 +15,71 @@ interface DashboardProps {
   user: {
     uid: string;
     name: string;
+    role?: 'patient' | 'doctor';
   };
 }
 
-// Simple inline LoadingSpinner component
 const LoadingSpinner: React.FC = () => (
   <div className="flex justify-center items-center h-screen">
-    <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+    <motion.div
+      className="h-16 w-16 border-t-4 border-blue-500 border-solid rounded-full"
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+    />
   </div>
 );
 
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
-  const [userRole, setUserRole] = useState<'patient' | 'doctor' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserRole = async () => {
+    const fetchUserData = async () => {
       try {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUserRole(userData.role as 'patient' | 'doctor');
-        } else {
-          console.error('User document not found');
+        if (user && user.role) {
+          // User already has a role, no need to fetch from Firestore
+          setIsLoading(false);
+        } else if (user) {
+          // Fetch user data from Firestore if role is not present
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            user.role = userData.role as 'patient' | 'doctor';
+          } else {
+            console.error('User document not found');
+          }
         }
       } catch (error) {
-        console.error('Error fetching user role:', error);
+        console.error('Error fetching user data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUserRole();
-  }, [user.uid]);
+    fetchUserData();
+  }, [user]);
 
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  if (userRole === 'doctor') {
-    return <DoctorDashboard user={user as User} />;
-  } else if (userRole === 'patient') {
-    return <PatientDashboard user={user as User} />;
-  } else {
-    return <div>Error: User role not found</div>;
+  if (!user || !user.role) {
+    return <div className="text-center text-[#EFEFED]">Error: User role not found</div>;
   }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="p-4 md:p-8"
+    >
+      {user.role === 'doctor' ? (
+        <DoctorDashboard user={user as User} />
+      ) : (
+        <PatientDashboard user={user as User} />
+      )}
+    </motion.div>
+  );
 };
 
 export default Dashboard;

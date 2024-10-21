@@ -13,9 +13,10 @@ const AuthComponent: React.FC = () => {
   const router = useRouter();
 
   const setUserWithRole = (userData: any, role: string) => {
-    setUser({ ...userData, role });
-    console.log('User logged in:', { ...userData, role });
-    router.push('/dashboard'); // Redirect to dashboard after successful login
+    const userWithRole = { ...userData, role };
+    setUser(userWithRole);
+    console.log('User logged in:', userWithRole);
+    router.push('/dashboard');
   };
 
   return (

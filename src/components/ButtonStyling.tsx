@@ -17,12 +17,12 @@ const ButtonStyling: React.FC<ButtonStylingProps> = ({
   variant = 'primary',
   component = 'button'
 }) => {
-  const baseStyle = 'px-4 py-2 rounded-md font-semibold transition-colors duration-200 ease-in-out';
+  const baseStyle = 'px-4 py-2 rounded-md font-semibold transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2';
   const variantStyles = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
+    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-400'
   };
-  const disabledStyle = 'opacity-50 cursor-not-allowed';
+  const disabledStyle = 'opacity-50 cursor-not-allowed hover:scale-100';
 
   const buttonStyle = `${baseStyle} ${variantStyles[variant]} ${disabled ? disabledStyle : ''} ${className}`;
 
@@ -31,7 +31,7 @@ const ButtonStyling: React.FC<ButtonStylingProps> = ({
   return (
     <ButtonComponent
       onClick={onClick}
-      className={buttonStyle}
+      className={`${buttonStyle} slide-in`}
       disabled={disabled}
     >
       {text}

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { collection, query, where, getDocs, orderBy, limit, startAfter } from 'firebase/firestore';
+import { firestore as db } from '../../Firebase/config';
 import ButtonStyling from '../ButtonStyling';
 
 interface Doctor {
@@ -15,12 +17,49 @@ interface DoctorListComponentProps {
 const sampleDoctors: Doctor[] = [
   { id: '1', name: 'Dr. FINN DYCH', specialty: 'Dermatology', verified: true },
   { id: '2', name: 'Dr. STEWART CONNOR', specialty: 'Dermatology', verified: true },
-  { id: '3', name: 'Dr. KELVIN ASOMANIN', specialty: 'Dermatology', verified: true },
 ];
 
 const DoctorListComponent: React.FC<DoctorListComponentProps> = ({ onDoctorSelect }) => {
   const [doctors, setDoctors] = useState<Doctor[]>(sampleDoctors);
   const [searchTerm, setSearchTerm] = useState('');
+  const [lastDoc, setLastDoc] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
+
+  const fetchDoctors = async () => {
+    setLoading(true);
+    try {
+      const doctorsRef = collection(db, 'doctors');
+      let q = query(
+        doctorsRef,
+        where('verified', '==', true),
+        orderBy('name'),
+        limit(10)
+      );
+
+      if (lastDoc) {
+        q = query(q, startAfter(lastDoc));
+      }
+
+      const querySnapshot = await getDocs(q);
+      const fetchedDoctors = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Doctor));
+
+      setDoctors(prevDoctors => [...prevDoctors, ...fetchedDoctors]);
+      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1]);
+      setHasMore(querySnapshot.docs.length === 10);
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredDoctors = doctors.filter(doctor =>
     doctor.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -48,6 +87,15 @@ const DoctorListComponent: React.FC<DoctorListComponentProps> = ({ onDoctorSelec
           </div>
         ))}
       </div>
+      {hasMore && (
+        <div className="mt-4 text-center">
+          <ButtonStyling
+            text={loading ? "Loading..." : "Load More"}
+            onClick={fetchDoctors}
+            disabled={loading}
+          />
+        </div>
+      )}
     </section>
   );
 };

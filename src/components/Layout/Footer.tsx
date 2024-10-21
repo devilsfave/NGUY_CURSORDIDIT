@@ -26,12 +26,12 @@ const Footer: React.FC = () => {
               </Link>
             </li>
             <li>
-              <Link href="/terms-of-service">
+              <Link href="/app/Terms of Service/terms-of-service">
                 <a className="hover:text-blue-400">Terms of Service</a>
               </Link>
             </li>
             <li>
-              <Link href="/privacy-policy">
+              <Link href="/app/Privacy Policy/privacy-policy">
                 <a className="hover:text-blue-400">Privacy Policy</a>
               </Link>
             </li>
@@ -43,4 +43,3 @@ const Footer: React.FC = () => {
 };
 
 export default Footer;
-

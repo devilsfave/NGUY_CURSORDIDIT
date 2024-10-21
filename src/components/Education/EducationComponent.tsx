@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ButtonStyling from '../ButtonStyling';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface EducationItem {
   title: string;
@@ -8,7 +9,6 @@ interface EducationItem {
   link: string;
 }
 
-// Educational content for the diseases in HAM10000
 const educationContent: EducationItem[] = [
   {
     title: "Melanoma",
@@ -49,46 +49,78 @@ const educationContent: EducationItem[] = [
 
 const EducationComponent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [filteredContent, setFilteredContent] = useState(educationContent);
 
-  const filteredContent = educationContent.filter(item =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.content.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    const filtered = educationContent.filter(item =>
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.content.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredContent(filtered);
+  }, [searchQuery]);
 
   const handleReadMore = (link: string) => {
     window.open(link, '_blank', 'noopener,noreferrer');
   };
 
   return (
-    <section id="education" className="my-8">
-      <input
+    <motion.section
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      id="education"
+      className="my-8"
+    >
+      <motion.input
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2 }}
         type="text"
         placeholder="Search..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full p-2 mb-4 bg-[#262A36] text-[#EFEFED] rounded"
+        className="w-full p-2 mb-4 bg-[#262A36] text-[#EFEFED] rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-      <div className="bg-[#171B26] p-4 rounded-lg">
-        {filteredContent.map(item => (
-          <div key={item.title} className="mb-4 p-4 bg-[#262A36] rounded">
-            <h3 className="text-lg font-semibold text-[#EFEFED]">{item.title}</h3>
-            <p className="text-[#9C9FA4] mb-2">{item.content.substring(0, 100)}...</p>
-            <ButtonStyling 
-              text="Read More" 
-              onClick={() => handleReadMore(item.link)}
-            />
-          </div>
-        ))}
-      </div>
-      <div className="mt-8 space-y-4">
-        <Link href="/terms-of-service" className="block text-center text-[#3B82F6] underline">
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="bg-[#171B26] p-4 rounded-lg"
+      >
+        <AnimatePresence>
+          {filteredContent.map(item => (
+            <motion.div
+              key={item.title}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.3 }}
+              className="mb-4 p-4 bg-[#262A36] rounded hover:bg-[#2D3142] transition-colors duration-300"
+            >
+              <h3 className="text-lg font-semibold text-[#EFEFED]">{item.title}</h3>
+              <p className="text-[#9C9FA4] mb-2">{item.content.substring(0, 100)}...</p>
+              <ButtonStyling 
+                text="Read More" 
+                onClick={() => handleReadMore(item.link)}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className="mt-8 space-y-4"
+      >
+        <Link href="/terms-of-service" className="block text-center text-[#3B82F6] underline hover:text-[#2563EB] transition-colors duration-300">
           Terms of Service
         </Link>
-        <Link href="/privacy-policy" className="block text-center text-[#3B82F6] underline">
+        <Link href="/privacy-policy" className="block text-center text-[#3B82F6] underline hover:text-[#2563EB] transition-colors duration-300">
           Privacy Policy
         </Link>
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 };
 

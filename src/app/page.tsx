@@ -55,11 +55,40 @@ export default function HomePage() {
       <section className="text-center mb-12">
         <h2 className="text-2xl font-semibold mb-4 text-[#EFEFED]">Trusted by Dermatologists</h2>
         <p className="text-[#9C9FA4] mb-6">Our AI-powered analysis is backed by leading skin health experts.</p>
-        <div className="flex justify-center space-x-8">
-          {/* Replace with actual partner logos */}
-          <div className="w-24 h-24 bg-[#1F2937] rounded-full"></div>
-          <div className="w-24 h-24 bg-[#1F2937] rounded-full"></div>
-          <div className="w-24 h-24 bg-[#1F2937] rounded-full"></div>
+        <div className="flex justify-center items-center space-x-8">
+          <div className="flex flex-col items-center">
+            <Image
+              src="/DERMATOLOGISTS IMAGES/Dr. Rue Compton.jpg"
+              alt="Dr. Rue Compton"
+              width={96}
+              height={96}
+              className="rounded-full"
+            />
+            <p className="mt-2 text-sm text-[#EFEFED]">Dr. Rue Compton</p>
+            <p className="text-xs text-[#9C9FA4]">Dermatologist</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <Image
+              src="/DERMATOLOGISTS IMAGES/DERMATOLOGIST EXPERTS.png"
+              alt="Dermatologist Experts"
+              width={96}
+              height={96}
+              className="rounded-full"
+            />
+            <p className="mt-2 text-sm text-[#EFEFED]">Dermatologist Experts</p>
+            <p className="text-xs text-[#9C9FA4]">Company</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <Image
+              src="/DERMATOLOGISTS IMAGES/DR. Devlin McKhay.jpg"
+              alt="Dr. Devlin McKhay"
+              width={96}
+              height={96}
+              className="rounded-full"
+            />
+            <p className="mt-2 text-sm text-[#EFEFED]">DR. Devlin McKhay</p>
+            <p className="text-xs text-[#9C9FA4]">Dermatologist</p>
+          </div>
         </div>
       </section>
 

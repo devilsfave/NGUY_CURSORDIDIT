@@ -17,9 +17,10 @@ interface FormData {
 
 interface RegisterFormProps {
   setUserWithRole: (user: any, role: string) => void;
+  role: 'patient' | 'doctor';
 }
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ setUserWithRole }) => {
+const RegisterForm: React.FC<RegisterFormProps> = ({ setUserWithRole, role }) => {
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -29,112 +30,55 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ setUserWithRole }) => {
     specialization: '',
     location: '',
   });
-  const [role, setRole] = useState<'patient' | 'doctor'>('patient');
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-    }
-    setError(null);
-    setIsLoading(true);
-
-    const { email, password, confirmPassword, fullName, licenseNumber, specialization, location } = formData;
-
-    // Input validation
-    if (!email || !password || !confirmPassword || !fullName) {
-      setError('Please fill in all required fields.');
-      setIsLoading(false);
-      return;
-    }
-    if (role === 'doctor' && (!licenseNumber || !specialization || !location)) {
-      setError('Doctors must provide all required details.');
-      setIsLoading(false);
-      return;
-    }
-    if (!isValidEmail(email)) {
-      setError('Please enter a valid email address.');
-      setIsLoading(false);
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
-      setIsLoading(false);
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      setIsLoading(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords don't match");
       return;
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCredential.user, { displayName: fullName });
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const user = userCredential.user;
+
+      await updateProfile(user, { displayName: formData.fullName });
 
       const userData = {
-        fullName,
-        email,
+        fullName: formData.fullName,
+        email: formData.email,
         role,
-        ...(role === 'doctor' && { licenseNumber, specialization, location, verified: false }),
+        ...(role === 'doctor' && {
+          licenseNumber: formData.licenseNumber,
+          specialization: formData.specialization,
+          location: formData.location,
+          isVerified: false,
+        }),
       };
 
-      // Save user to Firestore based on role (either 'doctors' or 'patients' collection)
-      await setDoc(doc(db, role === 'doctor' ? 'doctors' : 'patients', userCredential.user.uid), userData);
+      await setDoc(doc(db, role === 'doctor' ? 'doctors' : 'patients', user.uid), userData);
 
-      // Call setUserWithRole function
-      setUserWithRole({ ...userData, uid: userCredential.user.uid }, role);
-      alert(`${role.charAt(0).toUpperCase() + role.slice(1)} registered successfully.${role === 'doctor' ? ' Verification is pending.' : ''}`);
+      setUserWithRole(user, role);
     } catch (error) {
-      console.error('Registration error:', error);
-      setError((error as Error).message || 'An error occurred during signup.');
-    } finally {
-      setIsLoading(false);
+      console.error('Error registering user:', error);
+      alert('Failed to register. Please try again.');
     }
   };
 
-  const isValidEmail = (email: string): boolean => {
-    const re = /\S+@\S+\.\S+/;
-    return re.test(email);
-  };
-
   return (
-    <form onSubmit={(e) => handleSubmit(e)} className="space-y-4">
-      <div className="flex justify-center space-x-4 mb-4">
-        <ButtonStyling
-          text="Patient"
-          onClick={() => setRole('patient')}
-          variant={role === 'patient' ? 'primary' : 'secondary'}
-        />
-        <ButtonStyling
-          text="Doctor"
-          onClick={() => setRole('doctor')}
-          variant={role === 'doctor' ? 'primary' : 'secondary'}
-        />
-      </div>
-
-      <input
-        type="text"
-        name="fullName"
-        value={formData.fullName}
-        onChange={handleChange}
-        placeholder="Full Name"
-        className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
-        required
-      />
+    <form onSubmit={handleSubmit} className="space-y-4">
       <input
         type="email"
         name="email"
         value={formData.email}
         onChange={handleChange}
         placeholder="Email"
-        className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
         required
+        className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
       />
       <input
         type="password"
@@ -142,8 +86,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ setUserWithRole }) => {
         value={formData.password}
         onChange={handleChange}
         placeholder="Password"
-        className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
         required
+        className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
       />
       <input
         type="password"
@@ -151,10 +95,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ setUserWithRole }) => {
         value={formData.confirmPassword}
         onChange={handleChange}
         placeholder="Confirm Password"
-        className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
         required
+        className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
       />
-
+      <input
+        type="text"
+        name="fullName"
+        value={formData.fullName}
+        onChange={handleChange}
+        placeholder="Full Name"
+        required
+        className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
+      />
       {role === 'doctor' && (
         <>
           <input
@@ -163,8 +115,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ setUserWithRole }) => {
             value={formData.licenseNumber}
             onChange={handleChange}
             placeholder="License Number"
-            className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
             required
+            className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
           />
           <input
             type="text"
@@ -172,8 +124,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ setUserWithRole }) => {
             value={formData.specialization}
             onChange={handleChange}
             placeholder="Specialization"
-            className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
             required
+            className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
           />
           <input
             type="text"
@@ -181,21 +133,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ setUserWithRole }) => {
             value={formData.location}
             onChange={handleChange}
             placeholder="Location"
-            className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
             required
+            className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
           />
         </>
       )}
-
-      <ButtonStyling text="Register" onClick={() => handleSubmit()} disabled={isLoading} />
-      
-      <div className="text-center mt-4">
-        <p className="text-[#EFEFED]">Or register with</p>
-        <FacebookLogin setUserWithRole={setUserWithRole} role={role} isRegistration={true} />
-      </div>
-
-      {error && <p className="text-red-500">{error}</p>}
-      {isLoading && <p className="text-[#EFEFED]">Loading...</p>}
+      <ButtonStyling text="Register" type="submit" />
+      <FacebookLogin setUserWithRole={setUserWithRole} role={role} isRegistration={true} />
     </form>
   );
 };

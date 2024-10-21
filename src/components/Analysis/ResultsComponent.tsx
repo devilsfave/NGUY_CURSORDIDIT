@@ -111,14 +111,14 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ analysisResult, set
         userId: user.uid,
         prediction: analysisResult.prediction,
         confidence: analysisResult.confidence,
-        severity: getSeverityLevel(analysisResult.prediction),
+        severity: getSeverityLevel(analysisResult.prediction as Condition),
         imageUrl: imageUrl,
         date: new Date(),
       });
       alert('Analysis saved to history successfully.');
     } catch (err) {
       console.error('Error saving analysis to history:', err);
-      alert('Failed to save analysis to history.');
+      alert('Failed to save analysis to history. Please try again.');
     }
   };
 
