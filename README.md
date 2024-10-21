@@ -69,7 +69,13 @@ DERMAVISION PROJECT
 ├── next.config.js
 ├── tailwind.config.js
 └── tsconfig.json
+<<<<<<< HEAD
 
+=======
+Ask
+Copy
+Apply
+>>>>>>> 3dfd07bda127a5ab03be15432e1d752e10f0c05b
 
 
 
@@ -87,4 +93,8 @@ For support, please email support@dermavision.com or join our [community chat](h
 
 ---
 
+<<<<<<< HEAD
 Made with ❤️ by the DERMAVISION Team
+=======
+Made with ❤️ by the DERMAVISION Team
+>>>>>>> 3dfd07bda127a5ab03be15432e1d752e10f0c05b
