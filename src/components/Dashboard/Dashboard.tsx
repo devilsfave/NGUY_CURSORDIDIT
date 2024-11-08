@@ -1,85 +1,72 @@
-import React, { useState, useEffect } from 'react';
-import { firestore as db } from '../../Firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
+import React from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import PatientDashboard from './PatientDashboard';
 import DoctorDashboard from './DoctorDashboard';
-import { motion } from 'framer-motion';
+import AdminDashboard from './AdminDashboard';
+import SectionLoader from '../common/SectionLoader';
+import DashboardLayout from './shared/DashboardLayout';
+import { Timestamp } from 'firebase/firestore';
+import type { User } from '@/types/user';
 
-interface User {
-  uid: string;
-  name: string;
-  role: 'patient' | 'doctor';
-}
+const Dashboard = () => {
+  const { user, loading } = useAuth();
 
-interface DashboardProps {
-  user: {
-    uid: string;
-    name: string;
-    role?: 'patient' | 'doctor';
-  };
-}
+  if (loading) return <SectionLoader text="Loading dashboard..." />;
+  if (!user) return <div className="text-center text-[#EFEFED] p-4">Please log in to access the dashboard.</div>;
 
-const LoadingSpinner: React.FC = () => (
-  <div className="flex justify-center items-center h-screen">
-    <motion.div
-      className="h-16 w-16 border-t-4 border-blue-500 border-solid rounded-full"
-      animate={{ rotate: 360 }}
-      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-    />
-  </div>
-);
-
-const Dashboard: React.FC<DashboardProps> = ({ user }) => {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        if (user && user.role) {
-          // User already has a role, no need to fetch from Firestore
-          setIsLoading(false);
-        } else if (user) {
-          // Fetch user data from Firestore if role is not present
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            user.role = userData.role as 'patient' | 'doctor';
-          } else {
-            console.error('User document not found');
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      } finally {
-        setIsLoading(false);
-      }
+  const enrichUserData = (userData: any): User => {
+    return {
+      uid: userData.uid || '',
+      email: userData.email || '',
+      role: userData.role || 'patient',
+      createdAt: userData.createdAt || Timestamp.now(),
+      updatedAt: userData.updatedAt || new Date().toISOString(),
+      fullName: userData.fullName || '',
+      displayName: userData.displayName || null,
+      verified: userData.verified || false,
+      licenseNumber: userData.licenseNumber || undefined,
+      specialization: userData.specialization || undefined,
+      location: userData.location || undefined,
+      gender: userData.gender || undefined,
+      dateOfBirth: userData.dateOfBirth || undefined,
+      medicalHistory: userData.medicalHistory || undefined
     };
+  };
 
-    fetchUserData();
-  }, [user]);
-
-  if (isLoading) {
-    return <LoadingSpinner />;
+  switch (user.role) {
+    case 'patient':
+      return (
+        <DashboardLayout 
+          key={`patient-dashboard-${user.uid}`}
+          user={enrichUserData(user)}
+          title="Patient Dashboard"
+        >
+          <PatientDashboard user={enrichUserData(user)} />
+        </DashboardLayout>
+      );
+    case 'doctor':
+      return (
+        <DashboardLayout 
+          key={`doctor-dashboard-${user.uid}`}
+          user={enrichUserData(user)}
+          title="Doctor Dashboard"
+        >
+          <DoctorDashboard user={enrichUserData(user)} />
+        </DashboardLayout>
+      );
+    case 'admin':
+      return (
+        <DashboardLayout 
+          key={`admin-dashboard-${user.uid}`}
+          user={enrichUserData(user)}
+          title="Admin Dashboard"
+        >
+          <AdminDashboard user={enrichUserData(user)} />
+        </DashboardLayout>
+      );
+    default:
+      return null;
   }
-
-  if (!user || !user.role) {
-    return <div className="text-center text-[#EFEFED]">Error: User role not found</div>;
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="p-4 md:p-8"
-    >
-      {user.role === 'doctor' ? (
-        <DoctorDashboard user={user as User} />
-      ) : (
-        <PatientDashboard user={user as User} />
-      )}
-    </motion.div>
-  );
 };
 
 export default Dashboard;

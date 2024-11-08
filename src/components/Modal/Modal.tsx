@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FiX } from 'react-icons/fi';
 
 interface ModalProps {
   isOpen: boolean;
@@ -9,28 +10,37 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+
   return (
     <AnimatePresence>
-      {isOpen && (
+      <motion.div
+        className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      >
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={onClose}
+          className="bg-[#262A36] rounded-lg p-6 max-w-2xl w-full mx-4 relative"
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          onClick={e => e.stopPropagation()}
         >
-          <motion.div
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -50, opacity: 0 }}
-            className="bg-[#171B26] p-6 rounded-lg max-w-md w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-xl font-bold mb-4 text-[#EFEFED]">{title}</h2>
-            {children}
-          </motion.div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-[#EFEFED]">{title}</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-white transition-colors"
+              aria-label="Close modal"
+            >
+              <FiX className="w-6 h-6" />
+            </button>
+          </div>
+          {children}
         </motion.div>
-      )}
+      </motion.div>
     </AnimatePresence>
   );
 };

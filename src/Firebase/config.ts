@@ -1,6 +1,7 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getFirestore, doc, setDoc, Firestore } from 'firebase/firestore';
-import { getAuth, FacebookAuthProvider, signInWithPopup, Auth, UserCredential } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,36 +13,30 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
+// Initialize Firebase
 let app: FirebaseApp;
-let firestore: Firestore;
+let db: Firestore;
 let auth: Auth;
+let storage: ReturnType<typeof getStorage>;
 
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-  firestore = getFirestore(app);
-  auth = getAuth(app);
-} else {
-  app = getApps()[0];
-  firestore = getFirestore(app);
-  auth = getAuth(app);
+if (typeof window !== 'undefined') {
+  try {
+    if (!getApps().length) {
+      app = initializeApp(firebaseConfig);
+    } else {
+      app = getApps()[0];
+    }
+    
+    db = getFirestore(app);
+    auth = getAuth(app);
+    storage = getStorage(app);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Firebase initialized successfully');
+    }
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
+  }
 }
 
-export { firestore, auth };
-
-export const signInWithFacebookCredential = async (accessToken: string): Promise<UserCredential> => {
-  const credential = FacebookAuthProvider.credential(accessToken);
-  return signInWithPopup(auth, new FacebookAuthProvider());
-};
-
-export const saveAnalysisToFirestore = async (prediction: Record<string, number>, imageUri: string): Promise<void> => {
-  if (!auth.currentUser) {
-    throw new Error('No authenticated user');
-  }
-
-  const analysisRef = doc(firestore, 'users', auth.currentUser.uid, 'analyses', new Date().toISOString());
-  await setDoc(analysisRef, {
-    prediction,
-    imageUri,
-    timestamp: new Date()
-  });
-};
+export { db, auth, storage };

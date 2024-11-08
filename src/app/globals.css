@@ -3,44 +3,53 @@
 @tailwind utilities;
 
 /* Custom styles */
-html, body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+@layer base {
+  html, body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  body {
+    @apply bg-gradient-to-b from-[#0D111D] to-[#171B26] text-[#EFEFED];
+  }
 }
 
-/* You can add any global styles below this line */
-body {
-  @apply bg-gradient-to-b from-[#0D111D] to-[#171B26] text-[#EFEFED];
+@layer components {
+  .btn-primary {
+    @apply bg-blue-500 text-white font-bold py-2 px-4 rounded transition-all duration-300 transform scale-100 hover:bg-blue-600 hover:scale-105;
+  }
+
+  .feature-card {
+    @apply bg-gray-800 p-6 rounded-lg transition-all duration-300 hover:shadow-lg;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent;
+  }
 }
 
-/* Example of a custom utility class */
-.btn-primary {
-  @apply bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold py-2 px-4 rounded transition-all duration-300 ease-in-out transform hover:scale-105;
+@layer utilities {
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .slide-in {
+    animation: slideIn 0.5s ease-in-out;
+  }
 }
 
-/* Add any other global styles or custom utility classes here */
-
-/* Animation utilities */
-.fade-in {
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-.slide-in {
-  animation: slideIn 0.5s ease-in-out;
-}
-
+/* Animations */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
 @keyframes slideIn {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  .container {
-    @apply px-4;
+  from { 
+    transform: translateY(20px); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1; 
   }
 }

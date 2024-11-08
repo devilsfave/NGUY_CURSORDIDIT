@@ -5,24 +5,25 @@ import { useAuth } from '../../contexts/AuthContext';
 import AnalysisComponent from '../../components/Analysis/AnalysisComponent';
 import ResultsComponent from '../../components/Analysis/ResultsComponent';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { Condition } from '../../utils/severityCalculator';
 
-interface AnalysisResult {
-  prediction: 'nv' | 'mel' | 'bkl' | 'bcc' | 'akiec' | 'vasc' | 'df';
+interface PredictionResult {
+  prediction: Condition;
   confidence: number;
 }
 
 const AnalysisPage = () => {
   const { user } = useAuth();
-  const [currentTab, setCurrentTab] = useState('analysis');
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
-  const [imageUrl, setImageUrl] = useState('');
+  const [currentTab, setCurrentTab] = useState<'analysis' | 'results'>('analysis');
+  const [analysisResult, setAnalysisResult] = useState<PredictionResult | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!user) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
         className="text-center text-[#EFEFED] p-4"
       >
         Please log in to access the analysis feature.
@@ -30,9 +31,10 @@ const AnalysisPage = () => {
     );
   }
 
-  const handleAnalysisComplete = (result: AnalysisResult, url: string) => {
+  const handleAnalysisComplete = (result: PredictionResult, imageUrl: string) => {
+    console.log('Analysis complete:', result); // Debug log
     setAnalysisResult(result);
-    setImageUrl(url);
+    setImageUrl(imageUrl);
     setCurrentTab('results');
   };
 
@@ -40,29 +42,41 @@ const AnalysisPage = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
       className="container mx-auto px-4 py-8"
     >
       <h1 className="text-3xl font-bold mb-6 text-[#EFEFED]">Skin Analysis</h1>
+      
       <AnimatePresence mode="wait">
-        {currentTab === 'analysis' ? (
+        {isLoading ? (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-center py-8"
+          >
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#EFEFED] mx-auto"></div>
+            <p className="text-[#EFEFED] mt-4">Analyzing image...</p>
+          </motion.div>
+        ) : currentTab === 'analysis' ? (
           <motion.div
             key="analysis"
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 50 }}
-            transition={{ duration: 0.3 }}
+            exit={{ opacity: 0, x: 20 }}
           >
-            <AnalysisComponent onAnalysisComplete={handleAnalysisComplete} />
+            <AnalysisComponent 
+              onAnalysisComplete={handleAnalysisComplete}
+              user={user}
+            />
           </motion.div>
         ) : (
           analysisResult && (
             <motion.div
               key="results"
-              initial={{ opacity: 0, x: 50 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
+              exit={{ opacity: 0, x: -20 }}
             >
               <ResultsComponent
                 analysisResult={analysisResult}

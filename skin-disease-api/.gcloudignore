@@ -1,3 +1,9 @@
 .gcloudignore
 .git
 .gitignore
+__pycache__/
+*.pyc
+.env
+*.log
+*.tflite
+venv/

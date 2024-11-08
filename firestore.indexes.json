@@ -1,0 +1,170 @@
+{
+    "indexes": [
+      {
+        "collectionGroup": "appointments",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "doctorId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "status",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "date",
+            "order": "ASCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "doctors",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "verified",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "name",
+            "order": "ASCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "history",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "date",
+            "order": "DESCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "doctors",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "verified",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "fullName",
+            "order": "ASCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "appointments",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "patientId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "date",
+            "order": "DESCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "appointments",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "doctorId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "status",
+            "order": "ASCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "appointments",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "patientId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "date",
+            "order": "ASCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "appointments",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "doctorId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "date",
+            "order": "ASCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "appointments",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "patientId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "attachedAnalysisId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "date",
+            "order": "ASCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "appointments",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "doctorId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "completedAt",
+            "order": "DESCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "analyses",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "patientId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "attachedToAppointment",
+            "order": "ASCENDING"
+          }
+        ]
+      }
+    ]
+  }

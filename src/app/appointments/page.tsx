@@ -1,31 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import AppointmentBooking from '../../components/Appointments/AppointmentsComponent';
-import DoctorListComponent from '../../components/Appointments/DoctorListComponent';
+import DoctorAppointmentComponent from '../../components/Appointments/DoctorAppointmentComponent';
+import PatientAppointmentComponent from '../../components/Appointments/PatientAppointmentComponent';
 import { motion } from 'framer-motion';
 
 const AppointmentsPage = () => {
   const { user } = useAuth();
-  const [selectedDoctor, setSelectedDoctor] = useState<{ id: string; name: string } | null>(null);
 
   if (!user) {
     return (
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-center text-[#EFEFED] p-4"
       >
-        Please log in to view appointments.
+        Please log in to access appointments.
       </motion.div>
     );
   }
-
-  const handleDoctorSelect = (doctorId: string, doctorName: string) => {
-    setSelectedDoctor({ id: doctorId, name: doctorName });
-  };
 
   return (
     <motion.div
@@ -35,10 +30,10 @@ const AppointmentsPage = () => {
       className="container mx-auto px-4 py-8"
     >
       <h1 className="text-3xl font-bold mb-6 text-[#EFEFED]">Appointments</h1>
-      {!selectedDoctor ? (
-        <DoctorListComponent onDoctorSelect={handleDoctorSelect} />
+      {user.role === 'doctor' ? (
+        <DoctorAppointmentComponent user={user} />
       ) : (
-        <AppointmentBooking user={user} doctorId={selectedDoctor.id} doctorName={selectedDoctor.name} />
+        <PatientAppointmentComponent user={user} />
       )}
     </motion.div>
   );

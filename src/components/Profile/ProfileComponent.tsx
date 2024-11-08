@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import ButtonStyling from '../ButtonStyling';
 import Link from 'next/link';
-import { auth, firestore } from '../../Firebase/config'; 
+import { auth, db } from '../../Firebase/config'; // Changed from firestore to db
 import { signOut, updateProfile } from 'firebase/auth'; 
 import { doc, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { User as FirebaseUser } from 'firebase/auth';
+import DoctorProfileForm from './DoctorProfileForm';
+import PatientProfileForm from './PatientProfileForm';
+import AdminProfileForm from './AdminProfileForm'; 
 
 interface User extends FirebaseUser {
   name?: string;
@@ -14,8 +17,10 @@ interface User extends FirebaseUser {
 interface ProfileComponentProps {
   user: User;
   setUser: (user: User | null) => void;
+  role: 'patient' | 'doctor' | 'admin';
 }
-const ProfileComponent: React.FC<ProfileComponentProps> = ({ user, setUser }) => {
+
+const ProfileComponent: React.FC<ProfileComponentProps> = ({ user, setUser, role }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(user.displayName || user.name || '');
@@ -32,8 +37,7 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ user, setUser }) =>
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      setUser(null);
-      router.push('/');
+      router.push('/auth');
     } catch (error) {
       console.error("Error logging out:", error);
       alert('An error occurred while logging out. Please try again.');
@@ -48,7 +52,7 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ user, setUser }) =>
     try {
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, { displayName: editedName });
-        await updateDoc(doc(firestore, 'users', user.uid), { displayName: editedName });
+        await updateDoc(doc(db, 'users', user.uid), { displayName: editedName }); // Changed from firestore to db
         setUser({ ...user, displayName: editedName });
       }
       setIsEditing(false);
@@ -90,7 +94,12 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ user, setUser }) =>
           ) : (
             <ButtonStyling text="Edit Profile" onClick={handleEditProfile} />
           )}
-          <ButtonStyling text="Logout" onClick={handleLogout} />
+          <button 
+            className="mt-4 p-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
         </div>
 
         <div className="mt-4 space-y-2">
@@ -101,6 +110,10 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ user, setUser }) =>
             Privacy Policy
           </Link>
         </div>
+        
+        {role === 'doctor' && <DoctorProfileForm isEditing={isEditing} />}
+        {role === 'patient' && <PatientProfileForm isEditing={isEditing} />}
+        {role === 'admin' && <AdminProfileForm isEditing={isEditing} />}
       </div>
     </section>
   );

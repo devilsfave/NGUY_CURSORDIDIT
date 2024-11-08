@@ -1,4 +1,4 @@
-import { firestore as db } from '../Firebase/config';
+import { auth, db } from '../Firebase/config';
 import { 
   collection, 
   addDoc, 
@@ -10,7 +10,8 @@ import {
   updateDoc,
   orderBy,
   QueryConstraint,
-  DocumentData
+  DocumentData,
+  getDoc
 } from 'firebase/firestore';
 
 interface Prediction {
@@ -127,6 +128,15 @@ export const fetchUnverifiedDoctors = async (filter: DoctorFilter = {}): Promise
 
 // Function to verify a doctor in Firestore
 export const verifyDoctorInFirestore = async (doctorId: string): Promise<void> => {
+  const currentUser = auth.currentUser;
+  if (!currentUser) throw new Error('Not authenticated');
+  
+  // Verify admin status before proceeding
+  const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+  if (!userDoc.exists() || !['admin', 'superadmin'].includes(userDoc.data().role)) {
+    throw new Error('Unauthorized operation');
+  }
+  
   try {
     const docRef = doc(db, 'users', doctorId);
     await updateDoc(docRef, { verificationStatus: 'approved' });

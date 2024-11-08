@@ -1,41 +1,39 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 interface ButtonStylingProps {
   text: string;
   onClick?: () => void;
-  className?: string;
+  variant?: 'primary' | 'secondary' | 'danger' | 'success';
   disabled?: boolean;
-  variant?: 'primary' | 'secondary';
-  component?: 'button' | 'span';
+  className?: string;
+  icon?: ReactNode;
 }
 
 const ButtonStyling: React.FC<ButtonStylingProps> = ({
   text,
   onClick,
-  className = '',
-  disabled = false,
   variant = 'primary',
-  component = 'button'
+  disabled = false,
+  className = '',
+  icon
 }) => {
-  const baseStyle = 'px-4 py-2 rounded-md font-semibold transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2';
-  const variantStyles = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-400'
-  };
-  const disabledStyle = 'opacity-50 cursor-not-allowed hover:scale-100';
-
-  const buttonStyle = `${baseStyle} ${variantStyles[variant]} ${disabled ? disabledStyle : ''} ${className}`;
-
-  const ButtonComponent = component as any;
-
   return (
-    <ButtonComponent
+    <button
       onClick={onClick}
-      className={`${buttonStyle} slide-in`}
       disabled={disabled}
+      className={`flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors ${
+        variant === 'primary'
+          ? 'bg-[#3B82F6] hover:bg-[#2563EB] text-white'
+          : variant === 'secondary'
+          ? 'bg-[#374151] hover:bg-[#4B5563] text-[#9CA3AF]'
+          : variant === 'success'
+          ? 'bg-green-500 hover:bg-green-600 text-white'
+          : 'bg-red-500 hover:bg-red-600 text-white'
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
     >
+      {icon && <span className="mr-2">{icon}</span>}
       {text}
-    </ButtonComponent>
+    </button>
   );
 };
 

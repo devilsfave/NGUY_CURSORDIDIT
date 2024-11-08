@@ -2,18 +2,21 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
-import ButtonStyling from '../ButtonStyling';
 import { useAuth } from '../../contexts/AuthContext';
 
 const AuthComponent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
-  const [role, setRole] = useState<'patient' | 'doctor'>('patient');
+  const [role, setRole] = useState<'patient' | 'doctor' | 'admin'>('patient');
   const { setUser } = useAuth();
   const router = useRouter();
 
-  const setUserWithRole = (user: any, userRole: string) => {
+  const handleUserAuthenticated = (user: any, userRole: string) => {
     setUser({ ...user, role: userRole });
     router.push('/dashboard');
+  };
+
+  const verifyEmail = (email: string) => {
+    return email && email.includes('@') && email.includes('.');
   };
 
   return (
@@ -36,17 +39,18 @@ const AuthComponent: React.FC = () => {
         <label className="block text-[#EFEFED] mb-2">Role:</label>
         <select
           value={role}
-          onChange={(e) => setRole(e.target.value as 'patient' | 'doctor')}
+          onChange={(e) => setRole(e.target.value as 'patient' | 'doctor' | 'admin')}
           className="w-full p-2 bg-[#262A36] text-[#EFEFED] rounded"
         >
           <option value="patient">Patient</option>
           <option value="doctor">Doctor</option>
+          <option value="admin">Admin</option>
         </select>
       </div>
       {activeTab === 'login' ? (
-        <LoginForm setUserWithRole={setUserWithRole} role={role} />
+        <LoginForm role={role} onUserAuthenticated={handleUserAuthenticated} />
       ) : (
-        <RegisterForm setUserWithRole={setUserWithRole} role={role} />
+        <RegisterForm setUserWithRole={handleUserAuthenticated} role={role} />
       )}
     </div>
   );

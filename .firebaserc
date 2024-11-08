@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "dermaviosion-ai"
-  }
+    "default": "dermaviosion-ai",
+    " staging": "dermaviosion-ai"
+  },
+  "targets": {},
+  "etags": {}
 }

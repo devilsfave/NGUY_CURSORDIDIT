@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
- // output: 'export', // Add this line to enable static exports
-  experimental: {
-    esmExternals: 'loose'
-  },
+  reactStrictMode: true,
   webpack: (config, { isServer }) => {
     config.externals = [...config.externals, { canvas: "canvas" }];
 
@@ -18,8 +15,41 @@ const nextConfig = {
 
     return config;
   },
-  // Add this to ensure TypeScript files are processed
-  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/analyses/new',
+        destination: '/analysis',
+      }
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: '/analyses',
+        destination: '/analyses/history',
+        permanent: true,
+      },
+      {
+        source: '/patient-records',
+        destination: '/dashboard/patient-records',
+        permanent: true,
+      },
+    ];
+  },
+  env: {
+    API_URL: process.env.API_URL
+  }
 };
 
 module.exports = nextConfig;

@@ -1,125 +1,90 @@
-import React, { useState, useEffect } from 'react';
-import { signInWithFacebookCredential, firestore as db } from '../../Firebase/config';
+import React from 'react';
+import { FacebookAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-
-declare const FB: any;
+import { auth, db } from '../../Firebase/config';
+import { useAuth, User } from '../../contexts/AuthContext';
 
 interface FacebookLoginProps {
-  setUserWithRole: (user: { name: string | null; email: string | null }, role: string) => void;
-  role: 'patient' | 'doctor';
+  role: 'patient' | 'doctor' | 'admin';
   isRegistration: boolean;
 }
 
-const FacebookLogin: React.FC<FacebookLoginProps> = ({ setUserWithRole, role, isRegistration }) => {
-  const [isLoading, setIsLoading] = useState(false);
+const FacebookLogin: React.FC<FacebookLoginProps> = ({ role, isRegistration }) => {
+  const { setUser } = useAuth();
 
-  useEffect(() => {
-    window.fbAsyncInit = function() {
-      FB.init({
-        appId: '538566685170693',
-        cookie: true,
-        xfbml: true,
-        version: 'v20.0'
-      });
-    };
+  const handleFacebookLogin = async () => {
+    try {
+      const provider = new FacebookAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      if (!result.user) throw new Error('No user data returned');
 
-    (function(d, s, id) {
-      var js: HTMLScriptElement, fjs = d.getElementsByTagName(s)[0];
-      if (d.getElementById(id)) return;
-      js = d.createElement(s) as HTMLScriptElement;
-      js.id = id;
-      js.src = "https://connect.facebook.net/en_US/sdk.js";
-      if (fjs && fjs.parentNode) {
-        fjs.parentNode.insertBefore(js, fjs);
+      // Check if user already exists
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      
+      if (!userDoc.exists() && !isRegistration) {
+        throw new Error('No account found. Please register first.');
       }
-    }(document, 'script', 'facebook-jssdk'));
-  }, []);
 
-  const handleFacebookLogin = () => {
-    setIsLoading(true);
-    FB.login(function(response: fb.StatusResponse) {
-      if (response.authResponse) {
-        console.log('Facebook login successful:', response);
-        responseFacebook(response.authResponse);
+      if (userDoc.exists() && isRegistration) {
+        throw new Error('Account already exists. Please login instead.');
+      }
+
+      // For registration, create new user document
+      if (isRegistration) {
+        const userData: User = {
+          uid: result.user.uid,
+          email: result.user.email,
+          role: role,
+          fullName: result.user.displayName || 'Facebook User',
+          name: result.user.displayName || 'Facebook User',
+          displayName: result.user.displayName,
+          photoURL: result.user.photoURL,
+          emailVerified: result.user.emailVerified
+        };
+
+        // Save to users collection with additional Firestore fields
+        await setDoc(doc(db, 'users', result.user.uid), {
+          ...userData,
+          createdAt: new Date(),
+          authProvider: 'facebook'
+        });
+
+        // Save to role-specific collection
+        await setDoc(doc(db, role === 'doctor' ? 'doctors' : 'patients', result.user.uid), {
+          ...userData,
+          createdAt: new Date(),
+          authProvider: 'facebook'
+        });
+
+        setUser(userData);
       } else {
-        console.log('User cancelled login or did not fully authorize.');
-        setIsLoading(false);
-      }
-    }, {scope: 'public_profile,email'});
-  };
-
-  const responseFacebook = async (authResponse: fb.AuthResponse) => {
-    if (authResponse.accessToken) {
-      try {
-        const user = await signInWithFacebookCredential(authResponse.accessToken);
-        console.log('User from Facebook login:', user);
-        
-        if (isRegistration) {
-          const userDoc = await getDoc(doc(db, role === 'doctor' ? 'doctors' : 'patients', user.user.uid));
-          
-          if (userDoc.exists()) {
-            console.log('User already exists:', userDoc.data());
-            alert('User already exists. Please log in instead.');
-            setIsLoading(false);
-            return;
-          }
-
-          const userData = {
-            fullName: user.user.displayName,
-            email: user.user.email,
-            role,
-            ...(role === 'doctor' && { isVerified: false }),
-          };
-          await setDoc(doc(db, role === 'doctor' ? 'doctors' : 'patients', user.user.uid), userData);
-          console.log('New user registered:', userData);
-          alert(`${role.charAt(0).toUpperCase() + role.slice(1)} registered successfully with Facebook.${role === 'doctor' ? ' Verification is pending.' : ''}`);
-        } else {
-          const userDoc = await getDoc(doc(db, role === 'doctor' ? 'doctors' : 'patients', user.user.uid));
-          
-          if (!userDoc.exists()) {
-            console.log('User not found in', role === 'doctor' ? 'doctors' : 'patients', 'collection');
-            alert(`No ${role} account found. Please register or choose the correct role.`);
-            setIsLoading(false);
-            return;
-          }
-          console.log('User logged in:', userDoc.data());
+        // For login, verify role
+        const userData = userDoc.data() as User;
+        if (userData?.role !== role) {
+          throw new Error(`This account is not registered as a ${role}. Please use the correct login form.`);
         }
-
-        console.log('Setting user with role:', role);
-        setUserWithRole(
-          { name: user.user.displayName, email: user.user.email },
-          role
-        );
-      } catch (error) {
-        console.error('Facebook login error:', error);
-        if (error instanceof Error) {
-          alert(`An error occurred during Facebook login: ${error.message}`);
-        } else {
-          alert('An unknown error occurred during Facebook login. Please try again.');
-        }
-      } finally {
-        setIsLoading(false);
+        setUser(userData);
       }
-    } else {
-      console.log('Facebook login failed: No access token');
-      alert('Facebook login failed. Please try again.');
-      setIsLoading(false);
+
+    } catch (error) {
+      console.error('Facebook login error:', error);
+      alert(error instanceof Error ? error.message : 'An error occurred during Facebook login');
     }
   };
+
+  // Don't show Facebook login for admin role
+  if (role === 'admin') return null;
 
   return (
     <button
       onClick={handleFacebookLogin}
-      className="w-full p-2 bg-[#3b5998] text-white rounded flex items-center justify-center"
-      disabled={isLoading}
+      className="bg-[#1877F2] text-white py-2 px-4 rounded-lg hover:bg-[#166FE5] transition-colors w-full flex items-center justify-center gap-2"
     >
-      {isLoading ? (
-        'Loading...'
-      ) : (
-        <>
-          <span className="mr-2 bg-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-white font-bold">f</span> Continue with Facebook
-        </>
-      )}
+      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 5.989 4.388 10.952 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 22.952 24 17.989 24 12c0-6.627-5.373-12-12-12z"/>
+      </svg>
+      {isRegistration ? 'Sign up with Facebook' : 'Login with Facebook'}
     </button>
   );
 };

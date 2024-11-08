@@ -1,36 +1,78 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# Dependencies
 /node_modules
 /.pnp
 .pnp.js
-.yarn/install-state.gz
 
-# testing
+# Testing
 /coverage
 
-# next.js
+# Next.js
 /.next/
 /out/
 
-# production
+# Production
 /build
 
-# misc
+# Misc
 .DS_Store
 *.pem
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# debug
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
+# Local folders
+/BRIEF
+/old model
+/api
+/cache
+/server
+/static
+/types
+/.vscode
 
-# vercel
-.vercel
+# Firebase
+dermaviosion-ai-firebase-adminsdk-hgsd9-a2c65aa3b8.json
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Build files
+react-loadable-manifest.json
+build-manifest.json
+app-build-manifest.json
+
+# Cloud deployment
+.gcloudignore
+requirements.txt
+runtime.txt
+
+# Backup files
+backup_*.json
+BACKUP*.TXT
+LOGGS FROM CLOUD
+
+# Documentation and scripts
+*.ps1
+project structure.txt
+project_files_description.txt
+COMPONENT_evaluation.txt
+pages_against respective component_evluation.txt
+PLAN.TXT
+conversation for changes since last tested.txt
+
+# Config files
+firebaserules.txt
+firstore_collections.txt
+model deployment output.txt
+
+# Temporary and cache directories
+/trace
+/__pycache__
+*.pyc
+
+# Local development
+.env
+*.log

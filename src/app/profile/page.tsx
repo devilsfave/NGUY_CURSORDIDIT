@@ -1,28 +1,45 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import ProfileComponent from '../../components/Profile/ProfileComponent';
+import DoctorProfileForm from '../../components/Profile/DoctorProfileForm';
+import PatientProfileForm from '../../components/Profile/PatientProfileForm';
+import AdminProfileForm from '../../components/Profile/AdminProfileForm';
 import { useRouter } from 'next/navigation';
-import { User as FirebaseUser } from 'firebase/auth';
 
-interface User extends FirebaseUser {
-  name?: string;
-}
-
-const ProfilePage = () => {
-  const { user, setUser } = useAuth();
+const ProfilePage: React.FC = () => {
+  const { user } = useAuth();
   const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/auth');
+    }
+  }, [user, router]);
 
   if (!user) {
-    router.push('/auth');
-    return null;
+    return null; // or a loading spinner
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-[#EFEFED]">Your Profile</h1>
-      <ProfileComponent user={user as User} setUser={setUser as (user: User | null) => void} />
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Profile</h1>
+      {user.role === 'doctor' ? (
+        <DoctorProfileForm isEditing={isEditing} />
+      ) : user.role === 'patient' ? (
+        <PatientProfileForm isEditing={isEditing} />
+      ) : user.role === 'admin' ? (
+        <AdminProfileForm isEditing={isEditing} />
+      ) : (
+        <p>Invalid user role</p>
+      )}
+      <button 
+        className="mt-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+        onClick={() => setIsEditing(!isEditing)}
+      >
+        {isEditing ? 'Cancel Editing' : 'Edit Profile'}
+      </button>
     </div>
   );
 };

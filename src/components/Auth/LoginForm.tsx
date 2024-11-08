@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, sendPasswordResetEmail, UserCredential } from 'firebase/auth';
-import { auth } from '../../Firebase/config';
+import { FirebaseError } from 'firebase/app';
+import { auth, db } from '../../Firebase/config';
+import { doc, getDoc } from 'firebase/firestore';
 import ButtonStyling from '../ButtonStyling';
 import FacebookLogin from './FacebookLogin';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface LoginFormProps {
-  setUserWithRole: (user: { name: string | null; email: string | null }, role: string) => void;
+  role: 'patient' | 'doctor' | 'admin';
+  onUserAuthenticated: (user: any, role: string) => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ setUserWithRole }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ role, onUserAuthenticated }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [role, setRole] = useState<'patient' | 'doctor'>('patient');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const { setUser } = useAuth();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,10 +35,37 @@ const LoginForm: React.FC<LoginFormProps> = ({ setUserWithRole }) => {
       setIsLoading(true);
       setError(null);
       const userCredential: UserCredential = await signInWithEmailAndPassword(auth, email, password);
-      const userData = { name: userCredential.user.displayName, email: userCredential.user.email };
-      setUserWithRole(userData, role);
-    } catch (err) {
-      setError((err as Error).message || 'An error occurred during login.');
+      
+      console.log('User authenticated:', userCredential.user.uid);
+
+      // Fetch user data from Firestore
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      console.log('User document exists:', userDoc.exists());
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        console.log('User data:', userData);
+
+        if (userData && userData.role === role) {
+          console.log('User role matches:', role);
+          onUserAuthenticated(userCredential.user, role);
+        } else {
+          console.log('User role mismatch. Expected:', role, 'Actual:', userData?.role);
+          throw new Error(`This account is not registered as a ${role}. Please use the correct login form.`);
+        }
+      } else {
+        console.log('User document does not exist');
+        throw new Error('User data not found. Please contact support.');
+      }
+    } catch (err: unknown) {
+      console.error('Login error:', err);
+      if (err instanceof FirebaseError) {
+        setError(`Firebase error (${err.code}): ${err.message}`);
+      } else if (err instanceof Error) {
+        setError(err.message || 'An error occurred during login.');
+      } else {
+        setError('An unknown error occurred during login.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -65,19 +96,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ setUserWithRole }) => {
 
   return (
     <form onSubmit={handleLogin} className="space-y-4">
-      <div className="flex justify-center space-x-4 mb-4">
-        <ButtonStyling
-          text="Patient"
-          onClick={() => setRole('patient')}
-          variant={role === 'patient' ? 'primary' : 'secondary'}
-        />
-        <ButtonStyling
-          text="Doctor"
-          onClick={() => setRole('doctor')}
-          variant={role === 'doctor' ? 'primary' : 'secondary'}
-        />
-      </div>
-
       <div className="relative">
         <input
           type="email"
@@ -109,15 +127,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ setUserWithRole }) => {
         </button>
       </div>
 
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-red-500 mt-2">{error}</p>}
 
-      <ButtonStyling text="Login" disabled={isLoading} />
+      <ButtonStyling text={`Login as ${role}`} disabled={isLoading} />
 
       {isLoading && <p className="text-center text-[#EFEFED]">Loading...</p>}
 
       <div className="text-center mt-4">
         <p className="text-[#EFEFED]">OR</p>
-        <FacebookLogin setUserWithRole={setUserWithRole} role={role} isRegistration={false} />
+        <FacebookLogin role={role} isRegistration={false} />
       </div>
 
       <p className="text-center text-[#EFEFED] mt-4">

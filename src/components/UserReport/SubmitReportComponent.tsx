@@ -1,29 +1,46 @@
 import React, { useState } from 'react';
 import { addDoc, collection } from 'firebase/firestore';
-import { firestore as db } from '../../Firebase/config';
+import { auth, db }from '../../Firebase/config';
 import { useAuth } from '../../contexts/AuthContext';
 import ButtonStyling from '../ButtonStyling';
+import { updateSystemStats } from '../../utils/systemStats';
+import { toast } from 'react-toastify';
 
 const SubmitReportComponent: React.FC = () => {
   const [reportContent, setReportContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
 
   const handleSubmitReport = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      toast.error('You must be logged in to submit a report');
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
-      await addDoc(collection(db, 'userReports'), {
-        userId: user.uid,
+      const reportRef = await addDoc(collection(db, 'userReports'), {
+        doctorId: user.uid,
         content: reportContent,
         status: 'pending',
-        createdAt: new Date()
+        createdAt: new Date(),
+        updatedAt: new Date()
       });
-      alert('Report submitted successfully');
+
+      const statsUpdated = await updateSystemStats({ totalReports: 1 });
+      if (!statsUpdated) {
+        console.warn('Failed to update system stats, but report was created');
+      }
+
+      toast.success('Report submitted successfully');
       setReportContent('');
     } catch (error) {
       console.error('Error submitting report:', error);
-      alert('Failed to submit report. Please try again.');
+      toast.error('Failed to submit report. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -36,10 +53,14 @@ const SubmitReportComponent: React.FC = () => {
           rows={4}
           value={reportContent}
           onChange={(e) => setReportContent(e.target.value)}
-          placeholder="Describe your issue or concern..."
+          placeholder="Enter your medical report..."
           required
+          disabled={isSubmitting}
         />
-        <ButtonStyling text="Submit Report" />
+        <ButtonStyling 
+          text={isSubmitting ? "Submitting..." : "Submit Report"}
+          disabled={isSubmitting}
+        />
       </form>
     </div>
   );
